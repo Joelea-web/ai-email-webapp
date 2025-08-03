@@ -1,11 +1,11 @@
 from flask import Flask, request, jsonify
 import os
-import openai
+from openai import OpenAI
 
 app = Flask(__name__)
 
-# Set your OpenAI API key as an environment variable on Render
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+# Set your OpenAI API key from environment variable
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 @app.route('/')
 def home():
@@ -20,7 +20,7 @@ def summarise_email():
         return jsonify({'error': 'Email content is required'}), 400
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Summarise this email in clear and simple terms."},
@@ -29,7 +29,7 @@ def summarise_email():
             temperature=0.5
         )
 
-        summary = response['choices'][0]['message']['content'].strip()
+        summary = response.choices[0].message.content.strip()
         return jsonify({'summary': summary})
 
     except Exception as e:
